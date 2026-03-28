@@ -555,17 +555,12 @@ async function enviarVoto() {
   const datos = { nombre, casa, respuestas };
 
   try {
-    if (APPS_SCRIPT_URL === "https://script.google.com/macros/s/AKfycbzbklElx-RfpV5ZV0FFs-Nc3HBRybx4-ftKGeblAQ5UNQ29GmtCVfh79XfC56SmSSMZ_g/exec") {
-      // Modo demo: simular envío
-      await new Promise(r => setTimeout(r, 1500));
-    } else {
-      await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(datos)
-      });
-    }
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(datos)
+    });
     document.getElementById('nombreConfirmacion').textContent = nombre;
     document.getElementById('formArea').classList.add('oculto');
     document.getElementById('exitoPantalla').classList.add('visible');
