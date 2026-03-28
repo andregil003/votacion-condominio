@@ -555,7 +555,7 @@ async function enviarVoto() {
   const datos = { nombre, casa, respuestas };
 
   try {
-    if (APPS_SCRIPT_URL === "PEGA_TU_URL_AQUI") {
+    if (APPS_SCRIPT_URL === "https://script.google.com/macros/s/AKfycbzaKIg6IB6YxVI1TTSH7fdJAPdf0rLGT8i3ZGYCV72c2m3YRcjdXU72wU_8JlCRwABBKw/exec") {
       // Modo demo: simular envío
       await new Promise(r => setTimeout(r, 1500));
     } else {
