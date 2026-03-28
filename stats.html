@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resultados — Votación Condominio</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --verde: #1a6b4a;
+    --verde-claro: #e8f5ef;
+    --verde-medio: #2d9166;
+    --rojo: #c0392b;
+    --rojo-claro: #fdecea;
+    --oro: #c4992a;
+    --oro-claro: #faf3e0;
+    --texto: #1c2b22;
+    --texto-suave: #4a6355;
+    --borde: #c8ddd3;
+    --bg: #f5f9f6;
+    --blanco: #ffffff;
+    --sombra: 0 2px 20px rgba(26,107,74,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--texto); }
+
+  header {
+    background: var(--verde);
+    color: white;
+    padding: 28px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .header-left h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(20px, 4vw, 28px);
+    font-weight: 400;
+    margin-bottom: 4px;
+  }
+  .header-left p { font-size: 13px; opacity: 0.75; }
+  .btn-actualizar {
+    background: rgba(255,255,255,0.15);
+    border: 1.5px solid rgba(255,255,255,0.35);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-actualizar:hover { background: rgba(255,255,255,0.25); }
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  .cargando .spinner { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .main { max-width: 900px; margin: 0 auto; padding: 24px 16px 48px; }
+
+  /* Tarjetas de resumen */
+  .resumen-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .resumen-card {
+    background: var(--blanco);
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: var(--sombra);
+  }
+  .resumen-numero {
+    font-family: 'DM Serif Display', serif;
+    font-size: 38px;
+    color: var(--verde);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .resumen-label {
+    font-size: 12px;
+    color: var(--texto-suave);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Configuración de URL */
+  .config-box {
+    background: var(--oro-claro);
+    border: 1px solid #e0cc88;
+    border-left: 4px solid var(--oro);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+  }
+  .config-box h3 { font-size: 14px; color: #5a3f00; margin-bottom: 10px; }
+  .config-input-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .config-input-row input {
+    flex: 1;
+    min-width: 240px;
+    padding: 9px 13px;
+    border: 1.5px solid #d4b86a;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 13px;
+    background: white;
+    color: var(--texto);
+    outline: none;
+  }
+  .config-input-row input:focus { border-color: var(--verde-medio); }
+  .btn-config {
+    padding: 9px 16px;
+    background: var(--verde);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-config:hover { background: var(--verde-medio); }
+
+  /* Sección de resultados */
+  .seccion-titulo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--verde);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--borde);
+  }
+
+  .resultado-card {
+    background: var(--blanco);
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 14px;
+    box-shadow: var(--sombra);
+  }
+  .resultado-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    gap: 12px;
+  }
+  .resultado-titulo {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--texto);
+  }
+  .resultado-sub {
+    font-size: 12.5px;
+    color: var(--texto-suave);
+    margin-top: 3px;
+    line-height: 1.4;
+  }
+  .ganador-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 99px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .ganador-si { background: var(--verde-claro); color: var(--verde); }
+  .ganador-no { background: var(--rojo-claro); color: var(--rojo); }
+  .ganador-empate { background: var(--oro-claro); color: #7a5c00; }
+
+  .barras {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .barra-fila {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .barra-etiqueta {
+    font-size: 13px;
+    font-weight: 500;
+    width: 60px;
+    flex-shrink: 0;
+  }
+  .barra-bg {
+    flex: 1;
+    height: 28px;
+    background: #eef2ef;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .barra-fill {
+    height: 100%;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    transition: width 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+    min-width: 2px;
+    white-space: nowrap;
+  }
+  .barra-si { background: linear-gradient(90deg, #2d9166, #1a6b4a); }
+  .barra-no { background: linear-gradient(90deg, #e05050, #c0392b); }
+  .barra-num {
+    font-size: 13px;
+    color: var(--texto-suave);
+    width: 60px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  /* Tabla de votos individuales */
+  .tabla-container {
+    background: var(--blanco);
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--sombra);
+    margin-top: 28px;
+  }
+  .tabla-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--borde);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .tabla-header-row h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--verde);
+  }
+  .buscar-input {
+    padding: 8px 13px;
+    border: 1.5px solid var(--borde);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--texto);
+    outline: none;
+    width: 220px;
+  }
+  .buscar-input:focus { border-color: var(--verde-medio); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th {
+    background: var(--verde-claro);
+    color: var(--verde);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--borde);
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #eef2ef;
+    color: var(--texto);
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg); }
+  .voto-si { color: var(--verde); font-weight: 600; }
+  .voto-no { color: var(--rojo); font-weight: 600; }
+  .voto-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .chip-si { background: var(--verde-claro); color: var(--verde); }
+  .chip-no { background: var(--rojo-claro); color: var(--rojo); }
+  .timestamp { color: var(--texto-suave); font-size: 12px; }
+
+  /* Estado vacío */
+  .estado-vacio {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--texto-suave);
+  }
+  .estado-vacio .icono { font-size: 40px; margin-bottom: 16px; }
+  .estado-vacio p { font-size: 14px; line-height: 1.6; }
+
+  /* Exportar */
+  .btn-exportar {
+    background: white;
+    border: 1.5px solid var(--borde);
+    color: var(--texto-suave);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-exportar:hover { border-color: var(--verde-medio); color: var(--verde); }
+
+  .tabla-acciones {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 600px) {
+    .tabla-container { overflow-x: auto; }
+    table { min-width: 600px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>📊 Panel de Resultados</h1>
+    <p>Votación Condominio — Solo administradores</p>
+  </div>
+  <button class="btn-actualizar" id="btnActualizar" onclick="cargarDatos()">
+    <span class="spinner" id="spinnerActualizar"></span>
+    🔄 Actualizar
+  </button>
+</header>
+
+<div class="main">
+
+  <!-- Configuración de URL -->
+  <div class="config-box" id="configBox">
+    <h3>⚙️ Conectar con Google Sheets</h3>
+    <div class="config-input-row">
+      <input type="text" id="urlInput" placeholder="Pega aquí tu URL de Google Apps Script" />
+      <button class="btn-config" onclick="guardarUrl()">Guardar y cargar</button>
+    </div>
+  </div>
+
+  <!-- Resumen general -->
+  <div class="resumen-grid">
+    <div class="resumen-card">
+      <div class="resumen-numero" id="totalVotos">—</div>
+      <div class="resumen-label">Votos registrados</div>
+    </div>
+    <div class="resumen-card">
+      <div class="resumen-numero" id="aprobadosTotal">—</div>
+      <div class="resumen-label">Proyectos mayoritariamente aprobados</div>
+    </div>
+    <div class="resumen-card">
+      <div class="resumen-numero" id="ultimaActualizacion">—</div>
+      <div class="resumen-label">Última actualización</div>
+    </div>
+  </div>
+
+  <!-- Resultados por pregunta -->
+  <div class="seccion-titulo">Resultados por proyecto</div>
+  <div id="resultadosContainer">
+    <div class="estado-vacio">
+      <div class="icono">📋</div>
+      <p>Configure la URL de Apps Script arriba para ver los resultados.<br>Si ya la configuró, haga clic en <strong>Actualizar</strong>.</p>
+    </div>
+  </div>
+
+  <!-- Tabla individual -->
+  <div class="tabla-container" id="tablaContainer" style="display:none">
+    <div class="tabla-header-row">
+      <h3>Votos individuales</h3>
+      <div class="tabla-acciones">
+        <input type="text" class="buscar-input" id="buscarInput" placeholder="Buscar por nombre o casa..." oninput="filtrarTabla()">
+        <button class="btn-exportar" onclick="exportarCSV()">⬇ CSV</button>
+      </div>
+    </div>
+    <div id="tablaWrapper"></div>
+  </div>
+
+</div>
+
+<script>
+const PREGUNTAS = [
+  "Pozo — Mantenimiento",
+  "Cambio de techo de casa club",
+  "Talud",
+  "Cuarto para policías de garita",
+  "Salones sociales detrás de casa club",
+  "Políticas de arrendamiento",
+  "Muro perimetral con vallas autosustentables",
+  "Sistema de riego"
+];
+
+let datosGlobales = [];
+let urlScript = localStorage.getItem('statsUrl') || '';
+
+// Mostrar URL guardada
+if (urlScript) {
+  document.getElementById('urlInput').value = urlScript;
+  cargarDatos();
+}
+
+function guardarUrl() {
+  const url = document.getElementById('urlInput').value.trim();
+  if (!url) return alert('Por favor ingresa una URL válida.');
+  urlScript = url;
+  localStorage.setItem('statsUrl', url);
+  cargarDatos();
+}
+
+async function cargarDatos() {
+  if (!urlScript) {
+    alert('Primero guarda la URL de Apps Script.');
+    return;
+  }
+  const btn = document.getElementById('btnActualizar');
+  const spinner = document.getElementById('spinnerActualizar');
+  btn.classList.add('cargando');
+  spinner.style.display = 'block';
+
+  try {
+    const resp = await fetch(urlScript + '?action=getAll&t=' + Date.now());
+    const data = await resp.json();
+    datosGlobales = data;
+    renderizarResultados(data);
+    document.getElementById('ultimaActualizacion').textContent = new Date().toLocaleTimeString('es-GT', {hour:'2-digit', minute:'2-digit'});
+  } catch(e) {
+    alert('Error al cargar datos. Verifica la URL y que el script esté publicado como webapp pública.');
+  } finally {
+    btn.classList.remove('cargando');
+    spinner.style.display = 'none';
+  }
+}
+
+function renderizarResultados(data) {
+  const total = data.length;
+  document.getElementById('totalVotos').textContent = total;
+
+  const container = document.getElementById('resultadosContainer');
+  if (total === 0) {
+    container.innerHTML = `<div class="estado-vacio"><div class="icono">🗳️</div><p>Aún no hay votos registrados.</p></div>`;
+    document.getElementById('aprobadosTotal').textContent = '—';
+    return;
+  }
+
+  // Calcular por pregunta
+  let aprobados = 0;
+  let html = '';
+  PREGUNTAS.forEach((titulo, i) => {
+    let si = 0, no = 0;
+    data.forEach(voto => {
+      const r = voto.respuestas && voto.respuestas[i];
+      if (r === 'Sí') si++;
+      else if (r === 'No') no++;
+    });
+    const respondieron = si + no;
+    const pctSi = respondieron ? Math.round((si / respondieron) * 100) : 0;
+    const pctNo = respondieron ? 100 - pctSi : 0;
+    const gana = si > no ? 'si' : no > si ? 'no' : 'empate';
+    if (gana === 'si') aprobados++;
+    const badgeTexto = gana === 'si' ? '✓ Aprobado' : gana === 'no' ? '✗ No aprobado' : '= Empate';
+    const badgeClass = gana === 'si' ? 'ganador-si' : gana === 'no' ? 'ganador-no' : 'ganador-empate';
+
+    html += `
+      <div class="resultado-card">
+        <div class="resultado-header">
+          <div>
+            <div class="resultado-titulo">${i+1}. ${titulo}</div>
+            <div class="resultado-sub">${respondieron} de ${total} voto${total !== 1 ? 's' : ''}</div>
+          </div>
+          <span class="ganador-badge ${badgeClass}">${badgeTexto}</span>
+        </div>
+        <div class="barras">
+          <div class="barra-fila">
+            <span class="barra-etiqueta voto-si">✓ Sí</span>
+            <div class="barra-bg">
+              <div class="barra-fill barra-si" style="width:${pctSi}%">
+                ${pctSi > 15 ? pctSi + '%' : ''}
+              </div>
+            </div>
+            <span class="barra-num">${si} voto${si !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="barra-fila">
+            <span class="barra-etiqueta voto-no">✗ No</span>
+            <div class="barra-bg">
+              <div class="barra-fill barra-no" style="width:${pctNo}%">
+                ${pctNo > 15 ? pctNo + '%' : ''}
+              </div>
+            </div>
+            <span class="barra-num">${no} voto${no !== 1 ? 's' : ''}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+  document.getElementById('aprobadosTotal').textContent = aprobados + ' / ' + PREGUNTAS.length;
+
+  // Renderizar tabla
+  renderizarTabla(data);
+  document.getElementById('tablaContainer').style.display = 'block';
+}
+
+function renderizarTabla(data) {
+  let thead = `<thead><tr><th>#</th><th>Nombre</th><th>Casa</th>`;
+  PREGUNTAS.forEach((t, i) => { thead += `<th title="${t}">P${i+1}</th>`; });
+  thead += `<th>Hora</th></tr></thead>`;
+
+  let tbody = '<tbody id="tablaBody">';
+  data.forEach((v, idx) => {
+    tbody += `<tr>
+      <td style="color:var(--texto-suave)">${idx + 1}</td>
+      <td><strong>${v.nombre || '—'}</strong></td>
+      <td>${v.casa || '—'}</td>`;
+    (v.respuestas || []).forEach(r => {
+      const cls = r === 'Sí' ? 'chip-si' : 'chip-no';
+      tbody += `<td><span class="voto-chip ${cls}">${r || '—'}</span></td>`;
+    });
+    tbody += `<td class="timestamp">${v.timestamp ? new Date(v.timestamp).toLocaleString('es-GT', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'short'}) : '—'}</td>`;
+    tbody += '</tr>';
+  });
+  tbody += '</tbody>';
+
+  document.getElementById('tablaWrapper').innerHTML = `<table>${thead}${tbody}</table>`;
+}
+
+function filtrarTabla() {
+  const q = document.getElementById('buscarInput').value.toLowerCase();
+  document.querySelectorAll('#tablaBody tr').forEach((tr, i) => {
+    const nombre = datosGlobales[i]?.nombre?.toLowerCase() || '';
+    const casa = datosGlobales[i]?.casa?.toLowerCase() || '';
+    tr.style.display = (nombre.includes(q) || casa.includes(q)) ? '' : 'none';
+  });
+}
+
+function exportarCSV() {
+  if (!datosGlobales.length) return;
+  let csv = 'Nombre,Casa,' + PREGUNTAS.map((_, i) => 'P' + (i+1)).join(',') + ',Timestamp\n';
+  datosGlobales.forEach(v => {
+    const row = [
+      `"${v.nombre || ''}"`,
+      `"${v.casa || ''}"`,
+      ...(v.respuestas || []).map(r => `"${r || ''}"`),
+      `"${v.timestamp || ''}"`
+    ];
+    csv += row.join(',') + '\n';
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'votacion_condominio.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
